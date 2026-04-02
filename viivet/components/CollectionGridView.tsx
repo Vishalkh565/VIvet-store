@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef } from "react";
+import { useEffect, useState } from "react";
 import Image from "next/image";
 import { motion } from "framer-motion";
 import { products } from "@/data/products";
@@ -46,21 +46,40 @@ const GRID_ITEM_HTML = `
   </div>
 `;
 
-/** Shopify-powered grid — only rendered when credentials are configured */
+/** Loading skeleton shown during SSR and before client mount */
+function GridSkeleton() {
+  return (
+    <>
+      {Array.from({ length: 8 }).map((_, i) => (
+        <div key={i} className="flex flex-col items-center animate-pulse">
+          <div className="w-full aspect-[3/4] bg-[#1A0E05]/5 rounded-md mb-6" />
+          <div className="w-24 h-3 bg-[#1A0E05]/5 rounded-full mb-2" />
+          <div className="w-32 h-5 bg-[#1A0E05]/5 rounded-full" />
+        </div>
+      ))}
+    </>
+  );
+}
+
+/** Shopify-powered grid — only rendered after client mount */
 function ShopifyGrid() {
-  const templateRef = useRef<HTMLTemplateElement>(null);
+  const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
-    // Set innerHTML only on the client — keeps shopify-* elements out of the
-    // SSR HTML so the SDK never finds them outside a template context.
-    if (templateRef.current && !templateRef.current.innerHTML.trim()) {
-      templateRef.current.innerHTML = GRID_ITEM_HTML;
-    }
+    setMounted(true);
   }, []);
+
+  // During SSR and first hydration render, show skeleton only.
+  // This keeps ALL shopify-* elements out of the server HTML so the SDK
+  // never finds them in the live DOM before they're inside a template.
+  if (!mounted) return <GridSkeleton />;
 
   return (
     <shopify-list-context type="product" query="products" first="12">
-      <template ref={templateRef} />
+      {/* dangerouslySetInnerHTML on <template> works correctly in a pure
+          client-side render: React uses innerHTML which targets the template's
+          content DocumentFragment — keeping shopify-* out of the live DOM. */}
+      <template dangerouslySetInnerHTML={{ __html: GRID_ITEM_HTML }} />
       <div shopify-loading-placeholder="true">
         <div className="flex flex-col items-center animate-pulse">
           <div className="w-full aspect-[3/4] bg-[#1A0E05]/5 rounded-md mb-6" />

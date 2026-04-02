@@ -1,10 +1,7 @@
 "use client";
 
-import { useEffect, useRef } from "react";
+import { useEffect, useState } from "react";
 
-// Raw HTML for the product modal template — set via useEffect (client-only).
-// Using dangerouslySetInnerHTML on <template> during SSR causes shopify-*
-// elements to land in the live DOM, which triggers "not in a context template".
 const TEMPLATE_HTML = `
   <div class="relative bg-[#FAF7F0] w-full max-w-4xl max-h-[90vh] overflow-y-auto m-auto p-0 flex flex-col md:flex-row shadow-2xl">
 
@@ -72,14 +69,10 @@ const TEMPLATE_HTML = `
 `;
 
 export default function ProductModal() {
-  const templateRef = useRef<HTMLTemplateElement>(null);
+  const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
-    // Populate template only on the client — this keeps all shopify-* elements
-    // out of the SSR HTML so the SDK never finds them outside a template context.
-    if (templateRef.current && !templateRef.current.innerHTML.trim()) {
-      templateRef.current.innerHTML = TEMPLATE_HTML;
-    }
+    setMounted(true);
   }, []);
 
   return (
@@ -87,12 +80,21 @@ export default function ProductModal() {
       id="product-modal"
       className="product-modal p-0 rounded-sm border-0 bg-transparent backdrop:bg-[#1A0E05]/60 backdrop:backdrop-blur-sm"
     >
-      <shopify-context id="product-modal-context" type="product" wait-for-update>
-        <template ref={templateRef} />
-        <div shopify-loading-placeholder="true" className="p-20 text-center">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#C8A84B] mx-auto" />
-        </div>
-      </shopify-context>
+      {/*
+        Render shopify-context only after client mount.
+        During SSR and first hydration, this is null — so shopify-* elements
+        are NEVER in the server HTML and the SDK can't find them in the live DOM.
+        After mount, dangerouslySetInnerHTML on <template> correctly places
+        content in the template's DocumentFragment (not the live DOM).
+      */}
+      {mounted && (
+        <shopify-context id="product-modal-context" type="product" wait-for-update>
+          <template dangerouslySetInnerHTML={{ __html: TEMPLATE_HTML }} />
+          <div shopify-loading-placeholder="true" className="p-20 text-center">
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#C8A84B] mx-auto" />
+          </div>
+        </shopify-context>
+      )}
     </dialog>
   );
 }
