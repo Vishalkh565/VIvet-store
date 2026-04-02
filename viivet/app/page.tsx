@@ -97,6 +97,16 @@ export default function Home() {
     );
   }, []);
 
+  // Listen for add-to-cart events dispatched by ProductModal
+  useEffect(() => {
+    const handler = (e: Event) => {
+      const { product, size } = (e as CustomEvent<{ product: Product; size: string }>).detail;
+      addToCart(product, size);
+    };
+    window.addEventListener("vivet:add-to-cart", handler);
+    return () => window.removeEventListener("vivet:add-to-cart", handler);
+  }, [addToCart]);
+
   const cartCount = cartItems.reduce((sum, i) => sum + i.qty, 0);
 
   return (

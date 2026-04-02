@@ -12,6 +12,7 @@ export default function ProductModal() {
   const dialogRef = useRef<HTMLDialogElement>(null);
   const [product, setProduct] = useState<Product | null>(null);
   const [selectedSize, setSelectedSize] = useState<string>("");
+  const [added, setAdded] = useState(false);
 
   // Listen for open-modal events (dispatched from product cards)
   useEffect(() => {
@@ -20,6 +21,7 @@ export default function ProductModal() {
       const p = products[detail.idx] ?? products[0];
       setProduct(p);
       setSelectedSize(p.sizes?.[0] ?? "");
+      setAdded(false);
       dialogRef.current?.showModal();
     };
     window.addEventListener("vivet:open-modal", handler);
@@ -27,6 +29,20 @@ export default function ProductModal() {
   }, []);
 
   const close = () => dialogRef.current?.close();
+
+  const addToCart = () => {
+    if (!product) return;
+    window.dispatchEvent(
+      new CustomEvent("vivet:add-to-cart", {
+        detail: { product, size: selectedSize || "One Size" },
+      })
+    );
+    setAdded(true);
+    setTimeout(() => {
+      close();
+      setAdded(false);
+    }, 1200);
+  };
 
   const buyNow = () => {
     if (!product) return;
@@ -115,18 +131,28 @@ export default function ProductModal() {
             {/* Buttons */}
             <div className="flex flex-col" style={{ gap: "1rem", marginTop: "auto" }}>
               <button
-                onClick={buyNow}
-                className="w-full uppercase transition-colors"
-                style={{ padding: "1rem", background: "#1A0E05", color: "#FAF7F0", fontFamily: "Outfit,sans-serif", fontSize: "0.75rem", letterSpacing: "0.3em", border: "none", cursor: "pointer" }}
+                onClick={addToCart}
+                className="w-full uppercase transition-all duration-300"
+                style={{
+                  padding: "1rem",
+                  background: added ? "#2D6A4F" : "#1A0E05",
+                  color: "#FAF7F0",
+                  fontFamily: "Outfit,sans-serif",
+                  fontSize: "0.75rem",
+                  letterSpacing: "0.3em",
+                  border: "none",
+                  cursor: "pointer",
+                  transition: "background 0.3s ease",
+                }}
               >
-                Buy Now
+                {added ? "✓ Added to Cart" : "Add to Cart"}
               </button>
               <button
                 onClick={buyNow}
                 className="w-full uppercase transition-colors"
                 style={{ padding: "1rem", background: "transparent", color: "#1A0E05", fontFamily: "Outfit,sans-serif", fontSize: "0.75rem", letterSpacing: "0.3em", border: "1px solid rgba(26,14,5,0.2)", cursor: "pointer" }}
               >
-                View on Store
+                Buy Now
               </button>
             </div>
 

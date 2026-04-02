@@ -8,6 +8,12 @@ interface Props {
   onProductClick: (idx: number) => void;
 }
 
+function openModal(idx: number) {
+  window.dispatchEvent(
+    new CustomEvent("vivet:open-modal", { detail: { idx } })
+  );
+}
+
 export default function CollectionGridView({ onProductClick }: Props) {
   return (
     <section
@@ -38,25 +44,28 @@ export default function CollectionGridView({ onProductClick }: Props) {
               lineHeight: 1.1,
             }}
           >
-            <em>Click any piece</em>
+            <em>Explore</em>
             <br />
-            to explore.
+            the collection.
           </h2>
         </motion.div>
 
         {/* Product Grid */}
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-6 gap-y-12">
           {products.map((product, idx) => (
-            <motion.button
+            <motion.div
               key={product.id}
-              onClick={() => onProductClick(idx)}
-              className="group cursor-none relative flex flex-col items-center text-left"
+              className="group relative flex flex-col items-center"
               initial={{ opacity: 0, y: 20 }}
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
               transition={{ duration: 0.5, delay: idx * 0.05 }}
             >
-              <div className="w-full aspect-[3/4] relative overflow-hidden rounded-md mb-6 shadow-sm group-hover:shadow-xl transition-shadow duration-500">
+              {/* Image — click scrolls to product section */}
+              <button
+                onClick={() => onProductClick(idx)}
+                className="cursor-none w-full aspect-[3/4] relative overflow-hidden rounded-md mb-0 shadow-sm group-hover:shadow-xl transition-shadow duration-500"
+              >
                 <Image
                   src={`${product.imagePath}.jpg`}
                   alt={product.name}
@@ -64,8 +73,32 @@ export default function CollectionGridView({ onProductClick }: Props) {
                   className="object-cover transition-transform duration-700 ease-out group-hover:scale-105"
                   sizes="(max-width: 768px) 50vw, 25vw"
                 />
-              </div>
-              <div className="text-center w-full px-2">
+
+                {/* Add to Cart overlay — appears on hover */}
+                <div
+                  className="absolute inset-x-0 bottom-0 flex items-center justify-center py-4 transition-all duration-500 opacity-0 group-hover:opacity-100 translate-y-2 group-hover:translate-y-0"
+                  style={{ background: "rgba(26,14,5,0.75)", backdropFilter: "blur(4px)" }}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    openModal(idx);
+                  }}
+                >
+                  <span
+                    className="text-[#FAF7F0] text-xs tracking-[0.25em] uppercase flex items-center gap-2"
+                    style={{ fontFamily: "Outfit, sans-serif" }}
+                  >
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
+                      <path d="M6 2L3 6v14a2 2 0 002 2h14a2 2 0 002-2V6l-3-4z" />
+                      <line x1="3" y1="6" x2="21" y2="6" />
+                      <path d="M16 10a4 4 0 01-8 0" />
+                    </svg>
+                    Add to Cart
+                  </span>
+                </div>
+              </button>
+
+              {/* Product info */}
+              <div className="text-center w-full px-2 pt-5">
                 <p
                   className="text-xs tracking-[0.2em] uppercase mb-2"
                   style={{ fontFamily: "'Outfit', sans-serif", color: "#C8A84B" }}
@@ -73,22 +106,42 @@ export default function CollectionGridView({ onProductClick }: Props) {
                   {product.category}
                 </p>
                 <h3
-                  className="text-[#1A0E05] text-lg lg:text-xl transition-colors duration-300 group-hover:text-[#C8A84B]"
-                  style={{
-                    fontFamily: "'Cormorant Garamond', serif",
-                    letterSpacing: "0.02em",
-                  }}
+                  className="text-[#1A0E05] text-lg lg:text-xl transition-colors duration-300 group-hover:text-[#C8A84B] cursor-none"
+                  style={{ fontFamily: "'Cormorant Garamond', serif", letterSpacing: "0.02em" }}
+                  onClick={() => onProductClick(idx)}
                 >
                   {product.name}
                 </h3>
                 <p
-                  className="text-[#1A0E05]/50 text-sm mt-1"
+                  className="text-[#1A0E05]/50 text-sm mt-1 mb-3"
                   style={{ fontFamily: "'Outfit', sans-serif" }}
                 >
                   {product.price}
                 </p>
+
+                {/* Persistent Add to Cart button below the card */}
+                <button
+                  onClick={() => openModal(idx)}
+                  className="w-full py-2.5 text-xs tracking-[0.2em] uppercase transition-all duration-300 opacity-0 group-hover:opacity-100"
+                  style={{
+                    fontFamily: "Outfit, sans-serif",
+                    border: "1px solid rgba(26,14,5,0.2)",
+                    color: "#1A0E05",
+                    background: "transparent",
+                  }}
+                  onMouseEnter={(e) => {
+                    (e.currentTarget as HTMLButtonElement).style.background = "#1A0E05";
+                    (e.currentTarget as HTMLButtonElement).style.color = "#FAF7F0";
+                  }}
+                  onMouseLeave={(e) => {
+                    (e.currentTarget as HTMLButtonElement).style.background = "transparent";
+                    (e.currentTarget as HTMLButtonElement).style.color = "#1A0E05";
+                  }}
+                >
+                  Add to Cart
+                </button>
               </div>
-            </motion.button>
+            </motion.div>
           ))}
         </div>
       </div>
