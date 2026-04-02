@@ -1,8 +1,10 @@
 "use client";
 
+import { useState } from "react";
 import Image from "next/image";
 import { motion, AnimatePresence } from "framer-motion";
 import { Product } from "@/data/products";
+import { createShopifyCheckout } from "@/lib/shopify";
 
 export interface CartItem {
   product: Product;
@@ -18,10 +20,30 @@ interface Props {
 }
 
 export default function CartDrawer({ isOpen, onClose, items, onRemove }: Props) {
+  const [checkingOut, setCheckingOut] = useState(false);
+
   const subtotal = items.reduce((sum, item) => {
     const price = parseInt(item.product.price.replace(/[^\d]/g, ""), 10);
     return sum + price * item.qty;
   }, 0);
+
+  const handleCheckout = async () => {
+    if (items.length === 0 || checkingOut) return;
+    setCheckingOut(true);
+    try {
+      const url = await createShopifyCheckout(items);
+      if (url) {
+        window.location.href = url;
+      } else {
+        // Fallback: send to store collections page
+        window.open(`https://viivet.myshopify.com/collections/all`, "_blank");
+      }
+    } catch {
+      window.open(`https://viivet.myshopify.com/collections/all`, "_blank");
+    } finally {
+      setCheckingOut(false);
+    }
+  };
 
   return (
     <AnimatePresence>
@@ -160,16 +182,28 @@ export default function CartDrawer({ isOpen, onClose, items, onRemove }: Props) 
               {/* Checkout button */}
               <motion.button
                 id="cart-checkout-btn"
+                onClick={handleCheckout}
+                disabled={items.length === 0 || checkingOut}
                 whileTap={{ scale: 0.97 }}
                 whileHover={{ filter: "brightness(1.05)" }}
-                className="w-full py-4 rounded-xl font-medium text-sm tracking-[0.2em] uppercase cursor-none"
+                className="w-full py-4 rounded-xl font-medium text-sm tracking-[0.2em] uppercase cursor-none disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
                 style={{
                   fontFamily: "Outfit, sans-serif",
                   background: "#C8A84B",
                   color: "#FAF7F0",
                 }}
               >
-                Proceed to Checkout
+                {checkingOut ? (
+                  <>
+                    <svg className="animate-spin" width="14" height="14" viewBox="0 0 24 24" fill="none">
+                      <circle cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="3" strokeOpacity="0.3"/>
+                      <path d="M12 2a10 10 0 0110 10" stroke="currentColor" strokeWidth="3" strokeLinecap="round"/>
+                    </svg>
+                    Preparing Checkout...
+                  </>
+                ) : (
+                  "Proceed to Checkout"
+                )}
               </motion.button>
 
               <p className="text-center text-xs text-[#1A0E05]/40 mt-4 tracking-wider" style={{ fontFamily: "Outfit, sans-serif" }}>
