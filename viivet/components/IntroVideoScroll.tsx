@@ -21,7 +21,9 @@ export default function IntroVideoScroll() {
   const scrollIndicatorOpacity = useTransform(scrollYProgress, [0, 0.1], [1, 0]);
   const wordmarkOpacity = useTransform(scrollYProgress, [0, 0.08], [1, 0]);
 
-  // Preload all frames
+  const [firstFrameReady, setFirstFrameReady] = useState(false);
+
+  // Preload all frames — show frame 1 immediately, load rest in background
   useEffect(() => {
     const images: HTMLImageElement[] = [];
     let loadedCount = 0;
@@ -30,25 +32,27 @@ export default function IntroVideoScroll() {
       const img = new Image();
       const num = String(i).padStart(3, "0");
       img.src = `/frames/ezgif-frame-${num}.jpg`;
+
       img.onload = () => {
         loadedCount++;
-        if (loadedCount === TOTAL_FRAMES) {
-          setLoaded(true);
-        }
+        // Show first frame as soon as it's ready
+        if (i === 1) setFirstFrameReady(true);
+        if (loadedCount === TOTAL_FRAMES) setLoaded(true);
       };
       img.onerror = () => {
         loadedCount++;
-        if (loadedCount === TOTAL_FRAMES) {
-          setLoaded(true);
-        }
+        if (i === 1) setFirstFrameReady(true);
+        if (loadedCount === TOTAL_FRAMES) setLoaded(true);
       };
       images.push(img);
     }
     imagesRef.current = images;
   }, []);
 
-  // Draw frame on canvas — full device-pixel resolution
+  // Draw frame on canvas — fires when firstFrameReady, loaded, or frameIndex changes
   useEffect(() => {
+    if (!firstFrameReady) return;
+
     const canvas = canvasRef.current;
     if (!canvas) return;
 
@@ -82,7 +86,7 @@ export default function IntroVideoScroll() {
     const y = 0;
 
     ctx.drawImage(img, x, y, drawW, drawH);
-  }, [frameIndex, loaded]);
+  }, [frameIndex, loaded, firstFrameReady]);
 
   // Sync scroll position to frame index + re-render on resize
   useEffect(() => {
@@ -113,9 +117,9 @@ export default function IntroVideoScroll() {
           style={{ width: "100%", height: "100%" }}
         />
 
-        {/* Loading overlay */}
-        {!loaded && (
-          <div className="absolute inset-0 flex items-center justify-center bg-[#1A0E05]">
+        {/* Loading overlay — only shows until frame 1 is ready */}
+        {!firstFrameReady && (
+          <div className="absolute inset-0 flex items-center justify-center bg-[#1A0E05] z-10">
             <div className="text-center">
               <p
                 className="text-[#C8A84B] mb-4"
@@ -124,14 +128,14 @@ export default function IntroVideoScroll() {
                 VIVET
               </p>
               <p className="text-[#F5EDD8] text-sm tracking-[0.3em] uppercase opacity-60">
-                Loading Experience
+                Loading
               </p>
               <div className="mt-6 w-32 h-px bg-[#C8A84B] mx-auto animate-pulse" />
             </div>
           </div>
         )}
 
-        {/* Scroll indicator */}
+        {/* Scroll indicator — shows once all frames ready */}
         {loaded && (
           <motion.div
             className="absolute bottom-12 left-1/2 -translate-x-1/2 flex flex-col items-center gap-3"
