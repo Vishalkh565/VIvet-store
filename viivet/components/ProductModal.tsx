@@ -19,7 +19,7 @@ export default function ProductModal() {
       const detail = (e as CustomEvent<{ idx: number }>).detail;
       const p = products[detail.idx] ?? products[0];
       setProduct(p);
-      setSelectedSize(p.buyNowSection?.sizes?.[0] ?? "");
+      setSelectedSize(p.sizes?.[0] ?? "");
       dialogRef.current?.showModal();
     };
     window.addEventListener("vivet:open-modal", handler);
@@ -87,13 +87,13 @@ export default function ProductModal() {
             </div>
 
             {/* Size selector */}
-            {product.buyNowSection?.sizes && product.buyNowSection.sizes.length > 0 && (
+            {product.sizes && product.sizes.length > 0 && (
               <div style={{ marginBottom: "2.5rem" }}>
                 <p className="text-xs uppercase tracking-widest mb-3" style={{ fontFamily: "Outfit,sans-serif", color: "rgba(26,14,5,0.4)" }}>
                   Size
                 </p>
                 <div className="flex flex-wrap gap-2">
-                  {product.buyNowSection.sizes.map((size) => (
+                  {product.sizes.map((size) => (
                     <button
                       key={size}
                       onClick={() => setSelectedSize(size)}
@@ -131,10 +131,10 @@ export default function ProductModal() {
             </div>
 
             {/* Description */}
-            {product.buyNowSection?.description && (
+            {product.description && (
               <div style={{ marginTop: "3rem", paddingTop: "2rem", borderTop: "1px solid rgba(26,14,5,0.05)" }}>
                 <p style={{ fontFamily: "Outfit,sans-serif", fontSize: "0.875rem", lineHeight: 1.75, color: "rgba(26,14,5,0.7)" }}>
-                  {product.buyNowSection.description}
+                  {product.description}
                 </p>
               </div>
             )}
