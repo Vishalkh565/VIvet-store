@@ -1,8 +1,10 @@
 "use client";
 
-// Template content MUST be a raw HTML string via dangerouslySetInnerHTML.
-// React renders JSX children of <template> into the live DOM, not the template's
-// DocumentFragment — Shopify's SDK then errors "not in a context template".
+import { useEffect, useRef } from "react";
+
+// Raw HTML for the product modal template — set via useEffect (client-only).
+// Using dangerouslySetInnerHTML on <template> during SSR causes shopify-*
+// elements to land in the live DOM, which triggers "not in a context template".
 const TEMPLATE_HTML = `
   <div class="relative bg-[#FAF7F0] w-full max-w-4xl max-h-[90vh] overflow-y-auto m-auto p-0 flex flex-col md:flex-row shadow-2xl">
 
@@ -70,14 +72,23 @@ const TEMPLATE_HTML = `
 `;
 
 export default function ProductModal() {
+  const templateRef = useRef<HTMLTemplateElement>(null);
+
+  useEffect(() => {
+    // Populate template only on the client — this keeps all shopify-* elements
+    // out of the SSR HTML so the SDK never finds them outside a template context.
+    if (templateRef.current && !templateRef.current.innerHTML.trim()) {
+      templateRef.current.innerHTML = TEMPLATE_HTML;
+    }
+  }, []);
+
   return (
     <dialog
       id="product-modal"
       className="product-modal p-0 rounded-sm border-0 bg-transparent backdrop:bg-[#1A0E05]/60 backdrop:backdrop-blur-sm"
     >
       <shopify-context id="product-modal-context" type="product" wait-for-update>
-        {/* dangerouslySetInnerHTML ensures content lands in the template's DocumentFragment */}
-        <template dangerouslySetInnerHTML={{ __html: TEMPLATE_HTML }} />
+        <template ref={templateRef} />
         <div shopify-loading-placeholder="true" className="p-20 text-center">
           <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#C8A84B] mx-auto" />
         </div>
