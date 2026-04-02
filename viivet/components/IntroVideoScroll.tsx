@@ -76,8 +76,8 @@ export default function IntroVideoScroll() {
     ctx.imageSmoothingEnabled = true;
     ctx.imageSmoothingQuality = "high";
 
-    // Cover-fit with 15% zoom, aligned to top to crop the baked-in button
-    const EXTRA_ZOOM = 1.15;
+    // Cover-fit with 25% zoom, aligned to top to aggressively crop the baked-in button on all devices (tablets/iPads have different aspect ratios)
+    const EXTRA_ZOOM = 1.25;
     const scale = Math.max(cssW / img.naturalWidth, cssH / img.naturalHeight) * EXTRA_ZOOM;
     const drawW = img.naturalWidth * scale;
     const drawH = img.naturalHeight * scale;
