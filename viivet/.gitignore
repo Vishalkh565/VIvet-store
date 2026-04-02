@@ -36,6 +36,13 @@ yarn-error.log*
 # vercel
 .vercel
 
+# Large video files — host these on a CDN (Cloudinary, etc.) instead of git
+/public/intro.mp4
+/public/*.mp4
+/public/*.mov
+
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+.vercel
