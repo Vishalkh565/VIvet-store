@@ -1,5 +1,6 @@
 export interface Product {
   id: string;
+  shopifyHandle: string;
   name: string;
   subName: string;
   price: string;
@@ -30,6 +31,7 @@ export interface Product {
 export const products: Product[] = [
   {
     id: "maison-tropicale-shirt",
+    shopifyHandle: "the-golden-fern-resort-shirt",
     name: "Maison Tropicale Shirt",
     subName: "The signature piece.",
     price: "₹3,500",
@@ -81,6 +83,7 @@ export const products: Product[] = [
   },
   {
     id: "burgundy-shirt",
+    shopifyHandle: "the-midnight-bordeaux-silk-shirt",
     name: "Burgundy Satin Shirt",
     subName: "Dressed without effort.",
     price: "₹3,500",
@@ -132,6 +135,7 @@ export const products: Product[] = [
   },
   {
     id: "camel-trousers",
+    shopifyHandle: "the-riviera-pleated-trouser",
     name: "Camel Tailored Trousers",
     subName: "Refined ease.",
     price: "₹4,500",
@@ -183,6 +187,7 @@ export const products: Product[] = [
   },
   {
     id: "cable-knit-sweater",
+    shopifyHandle: "the-espresso-heirloom-cable-knit",
     name: "Cable Knit Sweater",
     subName: "Warmth with character.",
     price: "₹15,000",
@@ -237,6 +242,7 @@ export const products: Product[] = [
   },
   {
     id: "cognac-belt",
+    shopifyHandle: "the-burnished-chestnut-leather-belt",
     name: "Cognac Leather Belt",
     subName: "Crafted to last a lifetime.",
     price: "₹8,000",
@@ -291,6 +297,7 @@ export const products: Product[] = [
   },
   {
     id: "green-card-holder",
+    shopifyHandle: "the-cypress-green-leather-card-case",
     name: "Forest Green Card Holder",
     subName: "Minimal. Essential. Perfect.",
     price: "₹4,500",
@@ -345,6 +352,7 @@ export const products: Product[] = [
   },
   {
     id: "camel-bifold",
+    shopifyHandle: "the-heritage-pebbled-leather-bifold",
     name: "Camel Bifold Wallet",
     subName: "Quietly confident.",
     price: "₹8,000",
@@ -396,6 +404,7 @@ export const products: Product[] = [
   },
   {
     id: "tan-slim-wallet",
+    shopifyHandle: "the-sandstone-calfskin-cardholder",
     name: "Tan Slim Card Wallet",
     subName: "Everything you need. Nothing more.",
     price: "₹5,500",

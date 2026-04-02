@@ -198,7 +198,7 @@ export default function ProductScrollExperience({
               </button>
               <button
                 onClick={() => {
-                  const handle = product.id;
+                  const handle = product.shopifyHandle;
                   window.open(`https://viivet.myshopify.com/products/${handle}`, "_blank");
                 }}
                 className="flex-1 py-3 text-xs tracking-[0.25em] uppercase transition-all duration-300"

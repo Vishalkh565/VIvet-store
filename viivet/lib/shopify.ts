@@ -37,9 +37,9 @@ async function getVariantId(handle: string): Promise<string | null> {
 export async function createShopifyCheckout(
   items: CartItem[]
 ): Promise<string | null> {
-  // Fetch Shopify variant IDs in parallel using product.id (= Shopify handle)
+  // Fetch Shopify variant IDs in parallel using product.shopifyHandle (= actual Shopify handle)
   const variantIds = await Promise.all(
-    items.map((item) => getVariantId(item.product.id))
+    items.map((item) => getVariantId(item.product.shopifyHandle))
   );
 
   const lines = items

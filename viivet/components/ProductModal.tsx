@@ -46,8 +46,7 @@ export default function ProductModal() {
 
   const buyNow = () => {
     if (!product) return;
-    const handle = product.name.toLowerCase().replace(/\s+/g, "-");
-    window.open(`https://viivet.myshopify.com/products/${handle}`, "_blank");
+    window.open(`https://viivet.myshopify.com/products/${product.shopifyHandle}`, "_blank");
   };
 
   return (
