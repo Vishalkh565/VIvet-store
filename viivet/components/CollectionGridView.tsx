@@ -74,9 +74,9 @@ export default function CollectionGridView({ onProductClick }: Props) {
                   sizes="(max-width: 768px) 50vw, 25vw"
                 />
 
-                {/* Add to Cart overlay — appears on hover */}
+                {/* Add to Cart overlay — hover only on desktop, hidden on mobile */}
                 <div
-                  className="absolute inset-x-0 bottom-0 flex items-center justify-center py-4 transition-all duration-500 opacity-0 group-hover:opacity-100 translate-y-2 group-hover:translate-y-0"
+                  className="absolute inset-x-0 bottom-0 hidden lg:flex items-center justify-center py-4 transition-all duration-500 opacity-0 group-hover:opacity-100 translate-y-2 group-hover:translate-y-0"
                   style={{ background: "rgba(26,14,5,0.75)", backdropFilter: "blur(4px)" }}
                   onClick={(e) => {
                     e.stopPropagation();
@@ -119,10 +119,10 @@ export default function CollectionGridView({ onProductClick }: Props) {
                   {product.price}
                 </p>
 
-                {/* Persistent Add to Cart button below the card */}
+                {/* Add to Cart button — always visible on mobile, hover-reveal on desktop */}
                 <button
                   onClick={() => openModal(idx)}
-                  className="w-full py-2.5 text-xs tracking-[0.2em] uppercase transition-all duration-300 opacity-0 group-hover:opacity-100"
+                  className="w-full py-2.5 text-xs tracking-[0.2em] uppercase transition-all duration-300 opacity-100 lg:opacity-0 lg:group-hover:opacity-100"
                   style={{
                     fontFamily: "Outfit, sans-serif",
                     border: "1px solid rgba(26,14,5,0.2)",
