@@ -19,7 +19,6 @@ export default function IntroVideoScroll() {
 
   const contentOpacity = useTransform(scrollYProgress, [0.8, 1], [0, 1]);
   const scrollIndicatorOpacity = useTransform(scrollYProgress, [0, 0.1], [1, 0]);
-  const wordmarkOpacity = useTransform(scrollYProgress, [0, 0.08], [1, 0]);
 
   const [firstFrameReady, setFirstFrameReady] = useState(false);
 
@@ -138,57 +137,22 @@ export default function IntroVideoScroll() {
         {/* Scroll indicator — shows once all frames ready */}
         {loaded && (
           <motion.div
-            className="absolute bottom-12 left-1/2 -translate-x-1/2 flex flex-col items-center gap-3"
+            className="absolute bottom-12 left-1/2 -translate-x-1/2 flex flex-col items-center gap-3 z-10"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ delay: 0.5 }}
             style={{ opacity: scrollIndicatorOpacity }}
           >
-            <span className="text-[#F5EDD8] text-xs tracking-[0.3em] uppercase">
+            <span className="text-[#F5EDD8] text-xs tracking-[0.3em] uppercase drop-shadow-md">
               Scroll to Enter
             </span>
             <motion.div
-              className="w-px h-12 bg-gradient-to-b from-[#C8A84B] to-transparent"
+              className="w-px h-12 bg-gradient-to-b from-[#FAF7F0] to-transparent shadow-lg"
               animate={{ scaleY: [0, 1, 0] }}
               transition={{ duration: 1.5, repeat: Infinity }}
             />
           </motion.div>
         )}
-
-        {/* VIVET wordmark overlay (with glass plate to hide baked video text) */}
-        <motion.div
-          className="absolute inset-0 flex items-center justify-center pointer-events-none px-4"
-          style={{ opacity: wordmarkOpacity }}
-        >
-          <div 
-            className="w-full max-w-4xl py-20 px-8 flex flex-col items-center justify-center rounded-3xl border shadow-2xl"
-            style={{ 
-              background: "rgba(26, 14, 5, 0.4)", 
-              backdropFilter: "blur(24px)",
-              WebkitBackdropFilter: "blur(24px)",
-              borderColor: "rgba(200, 168, 75, 0.2)",
-            }}
-          >
-            <h1
-              className="text-[#FAF7F0] text-center leading-none"
-              style={{
-                fontFamily: "Cormorant Garamond, serif",
-                fontSize: "clamp(3.5rem, 10vw, 7.5rem)",
-                fontWeight: 300,
-                letterSpacing: "0.18em",
-                textShadow: "0 4px 40px rgba(0,0,0,0.5)",
-              }}
-            >
-              VIVET
-            </h1>
-            <p
-              className="text-[#C8A84B] tracking-[0.6em] uppercase text-xs sm:text-sm mt-6 ml-3"
-              style={{ fontFamily: "Outfit, sans-serif" }}
-            >
-              Maison Tropicale
-            </p>
-          </div>
-        </motion.div>
 
         {/* Fade-in overlay for content transition */}
         <motion.div
