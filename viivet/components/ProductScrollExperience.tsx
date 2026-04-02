@@ -166,8 +166,58 @@ export default function ProductScrollExperience({
               ))}
             </div>
 
+            {/* CTA Buttons */}
+            <div className="mt-10 flex flex-col sm:flex-row gap-3 max-w-xs">
+              {/* Price */}
+              <p
+                className="text-sm mb-2 w-full"
+                style={{ fontFamily: "Outfit, sans-serif", color: mutedColor, letterSpacing: "0.05em" }}
+              >
+                {product.price}
+              </p>
+            </div>
+            <div className="flex flex-col sm:flex-row gap-3 max-w-xs">
+              <button
+                onClick={() =>
+                  window.dispatchEvent(
+                    new CustomEvent("vivet:open-modal", { detail: { idx: index } })
+                  )
+                }
+                className="flex-1 py-3 text-xs tracking-[0.25em] uppercase transition-all duration-300"
+                style={{
+                  fontFamily: "Outfit, sans-serif",
+                  background: textColor,
+                  color: product.gradient.includes("#F5EDD8") ? "#FAF7F0" : "#FAF7F0",
+                  border: "none",
+                  cursor: "pointer",
+                }}
+                onMouseEnter={(e) => { (e.currentTarget as HTMLButtonElement).style.opacity = "0.85"; }}
+                onMouseLeave={(e) => { (e.currentTarget as HTMLButtonElement).style.opacity = "1"; }}
+              >
+                Add to Cart
+              </button>
+              <button
+                onClick={() => {
+                  const handle = product.id;
+                  window.open(`https://viivet.myshopify.com/products/${handle}`, "_blank");
+                }}
+                className="flex-1 py-3 text-xs tracking-[0.25em] uppercase transition-all duration-300"
+                style={{
+                  fontFamily: "Outfit, sans-serif",
+                  background: "transparent",
+                  color: textColor,
+                  border: `1px solid ${faintColor}`,
+                  cursor: "pointer",
+                }}
+                onMouseEnter={(e) => { (e.currentTarget as HTMLButtonElement).style.borderColor = textColor; }}
+                onMouseLeave={(e) => { (e.currentTarget as HTMLButtonElement).style.borderColor = faintColor; }}
+              >
+                Buy Now
+              </button>
+            </div>
+
             {/* Product index */}
-            <div className="mt-16">
+            <div className="mt-8">
               <p
                 className="text-xs tracking-[0.3em] uppercase"
                 style={{ fontFamily: "Outfit, sans-serif", color: faintColor }}
