@@ -1,5 +1,6 @@
 "use client";
 
+import { useEffect, useRef } from "react";
 import Image from "next/image";
 import { motion } from "framer-motion";
 import { products } from "@/data/products";
@@ -14,42 +15,52 @@ const shopifyConfigured = Boolean(
     process.env.NEXT_PUBLIC_SHOPIFY_PUBLIC_TOKEN
 );
 
+// Raw HTML for the Shopify template — injected via useEffect (client-only)
+// so the shopify-* elements are never serialised into the live SSR DOM.
+const GRID_ITEM_HTML = `
+  <div
+    class="group cursor-none relative flex flex-col items-center"
+    onclick="var m=document.getElementById('product-modal');var c=document.getElementById('product-modal-context');if(m&&c){c.update(event);m.showModal();}"
+  >
+    <div class="w-full aspect-[3/4] relative overflow-hidden rounded-md mb-6 shadow-sm" style="transition:box-shadow 0.5s">
+      <shopify-media
+        width="400"
+        height="533"
+        query="product.selectedOrFirstAvailableVariant.image"
+        layout="constrained"
+        class="w-full h-full object-cover"
+        style="transition:transform 0.7s ease-out"
+      ></shopify-media>
+    </div>
+    <div class="text-center w-full px-2">
+      <p class="text-xs uppercase mb-2" style="font-family:'Outfit',sans-serif;color:#C8A84B;letter-spacing:0.2em">
+        <shopify-data query="product.vendor"></shopify-data>
+      </p>
+      <h3 class="text-lg" style="font-family:'Cormorant Garamond',serif;color:#1A0E05;letter-spacing:0.02em">
+        <shopify-data query="product.title"></shopify-data>
+      </h3>
+      <p class="text-sm mt-1" style="font-family:'Outfit',sans-serif;color:rgba(26,14,5,0.5)">
+        <shopify-money query="product.selectedOrFirstAvailableVariant.price"></shopify-money>
+      </p>
+    </div>
+  </div>
+`;
+
 /** Shopify-powered grid — only rendered when credentials are configured */
 function ShopifyGrid() {
+  const templateRef = useRef<HTMLTemplateElement>(null);
+
+  useEffect(() => {
+    // Set innerHTML only on the client — keeps shopify-* elements out of the
+    // SSR HTML so the SDK never finds them outside a template context.
+    if (templateRef.current && !templateRef.current.innerHTML.trim()) {
+      templateRef.current.innerHTML = GRID_ITEM_HTML;
+    }
+  }, []);
+
   return (
     <shopify-list-context type="product" query="products" first="12">
-      <template
-        dangerouslySetInnerHTML={{
-          __html: `
-            <div 
-              class="group cursor-none relative flex flex-col items-center"
-              onclick="document.getElementById('product-modal').showModal(); document.getElementById('product-modal-context').update(event);"
-            >
-              <div class="w-full aspect-[3/4] relative overflow-hidden rounded-md mb-6 shadow-sm" style="transition:box-shadow 0.5s">
-                <shopify-media 
-                  width="400" 
-                  height="533" 
-                  query="product.selectedOrFirstAvailableVariant.image" 
-                  layout="constrained"
-                  class="w-full h-full object-cover"
-                  style="transition:transform 0.7s ease-out"
-                ></shopify-media>
-              </div>
-              <div class="text-center w-full px-2">
-                <p class="text-xs uppercase mb-2" style="font-family:'Outfit',sans-serif;color:#C8A84B;letter-spacing:0.2em">
-                  <shopify-data query="product.vendor"></shopify-data>
-                </p>
-                <h3 class="text-lg" style="font-family:'Cormorant Garamond',serif;color:#1A0E05;letter-spacing:0.02em">
-                  <shopify-data query="product.title"></shopify-data>
-                </h3>
-                <p class="text-sm mt-1" style="font-family:'Outfit',sans-serif;color:rgba(26,14,5,0.5)">
-                  <shopify-money query="product.selectedOrFirstAvailableVariant.price"></shopify-money>
-                </p>
-              </div>
-            </div>
-          `,
-        }}
-      />
+      <template ref={templateRef} />
       <div shopify-loading-placeholder="true">
         <div className="flex flex-col items-center animate-pulse">
           <div className="w-full aspect-[3/4] bg-[#1A0E05]/5 rounded-md mb-6" />
