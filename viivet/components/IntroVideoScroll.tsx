@@ -155,29 +155,39 @@ export default function IntroVideoScroll() {
           </motion.div>
         )}
 
-        {/* VIVET wordmark overlay */}
+        {/* VIVET wordmark overlay (with glass plate to hide baked video text) */}
         <motion.div
-          className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none"
+          className="absolute inset-0 flex items-center justify-center pointer-events-none px-4"
           style={{ opacity: wordmarkOpacity }}
         >
-          <h1
-            className="text-[#FAF7F0] text-center"
-            style={{
-              fontFamily: "Cormorant Garamond, serif",
-              fontSize: "clamp(3rem, 10vw, 8rem)",
-              fontWeight: 300,
-              letterSpacing: "0.15em",
-              textShadow: "0 2px 40px rgba(0,0,0,0.4)",
+          <div 
+            className="w-full max-w-4xl py-20 px-8 flex flex-col items-center justify-center rounded-3xl border shadow-2xl"
+            style={{ 
+              background: "rgba(26, 14, 5, 0.4)", 
+              backdropFilter: "blur(24px)",
+              WebkitBackdropFilter: "blur(24px)",
+              borderColor: "rgba(200, 168, 75, 0.2)",
             }}
           >
-            VIVET
-          </h1>
-          <p
-            className="text-[#C8A84B] tracking-[0.5em] uppercase text-sm mt-2"
-            style={{ fontFamily: "Outfit, sans-serif" }}
-          >
-            Maison Tropicale
-          </p>
+            <h1
+              className="text-[#FAF7F0] text-center leading-none"
+              style={{
+                fontFamily: "Cormorant Garamond, serif",
+                fontSize: "clamp(3.5rem, 10vw, 7.5rem)",
+                fontWeight: 300,
+                letterSpacing: "0.18em",
+                textShadow: "0 4px 40px rgba(0,0,0,0.5)",
+              }}
+            >
+              VIVET
+            </h1>
+            <p
+              className="text-[#C8A84B] tracking-[0.6em] uppercase text-xs sm:text-sm mt-6 ml-3"
+              style={{ fontFamily: "Outfit, sans-serif" }}
+            >
+              Maison Tropicale
+            </p>
+          </div>
         </motion.div>
 
         {/* Fade-in overlay for content transition */}
