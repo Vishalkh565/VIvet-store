@@ -19,8 +19,7 @@ export default function Navbar({ cartCount, onCartOpen, themeColor }: Props) {
     
     // Listen for global open-cart event
     const openCartHandler = () => {
-      const cart = document.getElementById('cart') as any;
-      if (cart) cart.showModal();
+      onCartOpen();
     };
     window.addEventListener("open-cart", openCartHandler);
 
@@ -118,10 +117,7 @@ export default function Navbar({ cartCount, onCartOpen, themeColor }: Props) {
             id="navbar-cart-btn"
             whileHover={{ filter: "brightness(1.08)" }}
             whileTap={{ scale: 0.97 }}
-            onClick={() => {
-              const cart = document.getElementById('cart') as any;
-              if (cart) cart.showModal();
-            }}
+            onClick={onCartOpen}
             className="relative w-10 h-10 flex items-center justify-center cursor-none"
             aria-label={`Cart with ${cartCount} items`}
           >
