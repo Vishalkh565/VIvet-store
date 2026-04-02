@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import Image from "next/image";
 import {
   motion,
@@ -8,6 +8,7 @@ import {
   useTransform,
 } from "framer-motion";
 import { Product } from "@/data/products";
+import { createShopifyCheckout } from "@/lib/shopify";
 
 interface Props {
   product: Product;
@@ -22,6 +23,7 @@ export default function ProductScrollExperience({
   onActiveChange,
 }: Props) {
   const containerRef = useRef<HTMLDivElement>(null);
+  const [checkingOut, setCheckingOut] = useState(false);
 
   const { scrollYProgress } = useScroll({
     target: containerRef,
@@ -197,22 +199,42 @@ export default function ProductScrollExperience({
                 Add to Cart
               </button>
               <button
-                onClick={() => {
-                  const handle = product.shopifyHandle;
-                  window.open(`https://viivet.myshopify.com/products/${handle}`, "_blank");
+                disabled={checkingOut}
+                onClick={async () => {
+                  if (checkingOut) return;
+                  setCheckingOut(true);
+                  try {
+                    const url = await createShopifyCheckout([{ product, qty: 1, size: "One Size" }]);
+                    if (url) window.location.href = url;
+                    else window.open(`https://viivet.myshopify.com/products/${product.shopifyHandle}`, "_blank");
+                  } catch {
+                    window.open(`https://viivet.myshopify.com/products/${product.shopifyHandle}`, "_blank");
+                  } finally {
+                    setCheckingOut(false);
+                  }
                 }}
-                className="flex-1 py-3 text-xs tracking-[0.25em] uppercase transition-all duration-300"
+                className="flex-1 py-3 text-xs tracking-[0.25em] uppercase transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed flex justify-center items-center gap-2"
                 style={{
                   fontFamily: "Outfit, sans-serif",
                   background: "transparent",
                   color: textColor,
                   border: `1px solid ${faintColor}`,
-                  cursor: "pointer",
+                  cursor: checkingOut ? "wait" : "pointer",
                 }}
-                onMouseEnter={(e) => { (e.currentTarget as HTMLButtonElement).style.borderColor = textColor; }}
-                onMouseLeave={(e) => { (e.currentTarget as HTMLButtonElement).style.borderColor = faintColor; }}
+                onMouseEnter={(e) => { if(!checkingOut) (e.currentTarget as HTMLButtonElement).style.borderColor = textColor; }}
+                onMouseLeave={(e) => { if(!checkingOut) (e.currentTarget as HTMLButtonElement).style.borderColor = faintColor; }}
               >
-                Buy Now
+                {checkingOut ? (
+                  <>
+                    <svg className="animate-spin" width="12" height="12" viewBox="0 0 24 24" fill="none">
+                      <circle cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="3" strokeOpacity="0.3"/>
+                      <path d="M12 2a10 10 0 0110 10" stroke="currentColor" strokeWidth="3" strokeLinecap="round"/>
+                    </svg>
+                    Wait...
+                  </>
+                ) : (
+                  "Buy Now"
+                )}
               </button>
             </div>
 

@@ -7,11 +7,13 @@
 import { useEffect, useRef, useState } from "react";
 import Image from "next/image";
 import { products, Product } from "@/data/products";
+import { createShopifyCheckout } from "@/lib/shopify";
 
 export default function ProductModal() {
   const dialogRef = useRef<HTMLDialogElement>(null);
   const [product, setProduct] = useState<Product | null>(null);
   const [selectedSize, setSelectedSize] = useState<string>("");
+  const [checkingOut, setCheckingOut] = useState(false);
   const [added, setAdded] = useState(false);
 
   // Listen for open-modal events (dispatched from product cards)
@@ -44,9 +46,18 @@ export default function ProductModal() {
     }, 1200);
   };
 
-  const buyNow = () => {
-    if (!product) return;
-    window.open(`https://viivet.myshopify.com/products/${product.shopifyHandle}`, "_blank");
+  const buyNow = async () => {
+    if (!product || checkingOut) return;
+    setCheckingOut(true);
+    try {
+      const url = await createShopifyCheckout([{ product, qty: 1, size: selectedSize || "One Size" }]);
+      if (url) window.location.href = url;
+      else window.open(`https://viivet.myshopify.com/products/${product.shopifyHandle}`, "_blank");
+    } catch {
+      window.open(`https://viivet.myshopify.com/products/${product.shopifyHandle}`, "_blank");
+    } finally {
+      setCheckingOut(false);
+    }
   };
 
   return (
@@ -148,10 +159,21 @@ export default function ProductModal() {
               </button>
               <button
                 onClick={buyNow}
-                className="w-full uppercase transition-colors"
-                style={{ padding: "1rem", background: "transparent", color: "#1A0E05", fontFamily: "Outfit,sans-serif", fontSize: "0.75rem", letterSpacing: "0.3em", border: "1px solid rgba(26,14,5,0.2)", cursor: "pointer" }}
+                disabled={checkingOut}
+                className="w-full uppercase transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed flex justify-center items-center gap-2"
+                style={{ padding: "1rem", background: "transparent", color: "#1A0E05", fontFamily: "Outfit,sans-serif", fontSize: "0.75rem", letterSpacing: "0.3em", border: "1px solid rgba(26,14,5,0.2)", cursor: checkingOut ? "wait" : "pointer" }}
               >
-                Buy Now
+                {checkingOut ? (
+                  <>
+                    <svg className="animate-spin" width="12" height="12" viewBox="0 0 24 24" fill="none">
+                      <circle cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="3" strokeOpacity="0.3"/>
+                      <path d="M12 2a10 10 0 0110 10" stroke="currentColor" strokeWidth="3" strokeLinecap="round"/>
+                    </svg>
+                    Wait...
+                  </>
+                ) : (
+                  "Buy Now"
+                )}
               </button>
             </div>
 
