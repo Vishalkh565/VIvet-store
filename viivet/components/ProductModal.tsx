@@ -1,99 +1,145 @@
 "use client";
 
-import { useEffect, useState } from "react";
+// Pure React product modal — no Shopify Web Components SDK required.
+// Opens as a <dialog> element. Product data is passed via a custom
+// "vivet:open-modal" event dispatched by CollectionGridView or BestsellersSection.
 
-const TEMPLATE_HTML = `
-  <div class="relative bg-[#FAF7F0] w-full max-w-4xl max-h-[90vh] overflow-y-auto m-auto p-0 flex flex-col md:flex-row shadow-2xl">
-
-    <button
-      onclick="document.getElementById('product-modal').close()"
-      class="absolute top-6 right-6 z-20 w-10 h-10 flex items-center justify-center rounded-full transition-colors"
-      style="background:rgba(255,255,255,0.8); border:1px solid rgba(26,14,5,0.1)"
-      aria-label="Close"
-    >
-      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#1A0E05" stroke-width="1.5">
-        <path d="M18 6L6 18M6 6l12 12" />
-      </svg>
-    </button>
-
-    <div class="w-full md:w-1/2 flex items-center justify-center p-8" style="background:#F5F5F5">
-      <shopify-media
-        width="800"
-        height="800"
-        query="product.selectedOrFirstAvailableVariant.image"
-        layout="constrained"
-        class="w-full h-auto object-contain"
-      ></shopify-media>
-    </div>
-
-    <div class="w-full md:w-1/2 flex flex-col" style="padding:2.5rem 3.5rem">
-      <div style="margin-bottom:2rem">
-        <span class="uppercase block" style="font-family:Outfit,sans-serif; font-size:10px; letter-spacing:0.3em; margin-bottom:0.5rem; color:#C8A84B">
-          <shopify-data query="product.vendor"></shopify-data>
-        </span>
-        <h2 style="font-family:'Cormorant Garamond',serif; font-size:2.25rem; color:#1A0E05; margin-bottom:1rem; font-weight:300">
-          <shopify-data query="product.title"></shopify-data>
-        </h2>
-        <div style="font-family:Outfit,sans-serif; font-size:1.25rem; font-weight:300; color:rgba(26,14,5,0.6)">
-          <shopify-money query="product.selectedOrFirstAvailableVariant.price"></shopify-money>
-        </div>
-      </div>
-
-      <div style="margin-bottom:2.5rem">
-        <shopify-variant-selector></shopify-variant-selector>
-      </div>
-
-      <div class="flex flex-col" style="gap:1rem; margin-top:auto">
-        <button
-          shopify-add-to-cart
-          shopify-attr--disabled="!product.selectedOrFirstAvailableVariant.availableForSale"
-          class="w-full uppercase transition-colors"
-          style="padding:1rem; background:#1A0E05; color:#FAF7F0; font-family:Outfit,sans-serif; font-size:0.75rem; letter-spacing:0.3em; border:none; cursor:pointer"
-        >Add to Cart</button>
-        <button
-          shopify-buy-now
-          shopify-attr--disabled="!product.selectedOrFirstAvailableVariant.availableForSale"
-          class="w-full uppercase transition-colors"
-          style="padding:1rem; background:transparent; color:#1A0E05; font-family:Outfit,sans-serif; font-size:0.75rem; letter-spacing:0.3em; border:1px solid rgba(26,14,5,0.2); cursor:pointer"
-        >Buy Now</button>
-      </div>
-
-      <div style="margin-top:3rem; padding-top:2rem; border-top:1px solid rgba(26,14,5,0.05)">
-        <div style="font-family:Outfit,sans-serif; font-size:0.875rem; line-height:1.75; color:rgba(26,14,5,0.7)">
-          <shopify-data query="product.descriptionHtml"></shopify-data>
-        </div>
-      </div>
-    </div>
-
-  </div>
-`;
+import { useEffect, useRef, useState } from "react";
+import Image from "next/image";
+import { products, Product } from "@/data/products";
 
 export default function ProductModal() {
-  const [mounted, setMounted] = useState(false);
+  const dialogRef = useRef<HTMLDialogElement>(null);
+  const [product, setProduct] = useState<Product | null>(null);
+  const [selectedSize, setSelectedSize] = useState<string>("");
 
+  // Listen for open-modal events (dispatched from product cards)
   useEffect(() => {
-    setMounted(true);
+    const handler = (e: Event) => {
+      const detail = (e as CustomEvent<{ idx: number }>).detail;
+      const p = products[detail.idx] ?? products[0];
+      setProduct(p);
+      setSelectedSize(p.buyNowSection?.sizes?.[0] ?? "");
+      dialogRef.current?.showModal();
+    };
+    window.addEventListener("vivet:open-modal", handler);
+    return () => window.removeEventListener("vivet:open-modal", handler);
   }, []);
+
+  const close = () => dialogRef.current?.close();
+
+  const buyNow = () => {
+    if (!product) return;
+    const handle = product.name.toLowerCase().replace(/\s+/g, "-");
+    window.open(`https://viivet.myshopify.com/products/${handle}`, "_blank");
+  };
 
   return (
     <dialog
+      ref={dialogRef}
       id="product-modal"
       className="product-modal p-0 rounded-sm border-0 bg-transparent backdrop:bg-[#1A0E05]/60 backdrop:backdrop-blur-sm"
+      onClick={(e) => { if (e.target === dialogRef.current) close(); }}
     >
-      {/*
-        Render shopify-context only after client mount.
-        During SSR and first hydration, this is null — so shopify-* elements
-        are NEVER in the server HTML and the SDK can't find them in the live DOM.
-        After mount, dangerouslySetInnerHTML on <template> correctly places
-        content in the template's DocumentFragment (not the live DOM).
-      */}
-      {mounted && (
-        <shopify-context id="product-modal-context" type="product" wait-for-update>
-          <template dangerouslySetInnerHTML={{ __html: TEMPLATE_HTML }} />
-          <div shopify-loading-placeholder="true" className="p-20 text-center">
-            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#C8A84B] mx-auto" />
+      {product && (
+        <div className="relative bg-[#FAF7F0] w-full max-w-4xl max-h-[90vh] overflow-y-auto m-auto flex flex-col md:flex-row shadow-2xl">
+
+          {/* Close button */}
+          <button
+            onClick={close}
+            className="absolute top-6 right-6 z-20 w-10 h-10 flex items-center justify-center rounded-full transition-colors"
+            style={{ background: "rgba(255,255,255,0.8)", border: "1px solid rgba(26,14,5,0.1)" }}
+            aria-label="Close"
+          >
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#1A0E05" strokeWidth="1.5">
+              <path d="M18 6L6 18M6 6l12 12" />
+            </svg>
+          </button>
+
+          {/* Product image */}
+          <div className="w-full md:w-1/2 flex items-center justify-center p-8" style={{ background: "#F5F5F5" }}>
+            <div className="relative w-full aspect-square">
+              <Image
+                src={`${product.imagePath}.jpg`}
+                alt={product.name}
+                fill
+                className="object-contain"
+                sizes="(max-width: 768px) 100vw, 50vw"
+              />
+            </div>
           </div>
-        </shopify-context>
+
+          {/* Product details */}
+          <div className="w-full md:w-1/2 flex flex-col" style={{ padding: "2.5rem 3.5rem" }}>
+            <div style={{ marginBottom: "2rem" }}>
+              <span
+                className="uppercase block"
+                style={{ fontFamily: "Outfit,sans-serif", fontSize: 10, letterSpacing: "0.3em", marginBottom: "0.5rem", color: "#C8A84B" }}
+              >
+                {product.category}
+              </span>
+              <h2 style={{ fontFamily: "'Cormorant Garamond',serif", fontSize: "2.25rem", color: "#1A0E05", marginBottom: "1rem", fontWeight: 300 }}>
+                {product.name}
+              </h2>
+              <div style={{ fontFamily: "Outfit,sans-serif", fontSize: "1.25rem", fontWeight: 300, color: "rgba(26,14,5,0.6)" }}>
+                {product.price}
+              </div>
+            </div>
+
+            {/* Size selector */}
+            {product.buyNowSection?.sizes && product.buyNowSection.sizes.length > 0 && (
+              <div style={{ marginBottom: "2.5rem" }}>
+                <p className="text-xs uppercase tracking-widest mb-3" style={{ fontFamily: "Outfit,sans-serif", color: "rgba(26,14,5,0.4)" }}>
+                  Size
+                </p>
+                <div className="flex flex-wrap gap-2">
+                  {product.buyNowSection.sizes.map((size) => (
+                    <button
+                      key={size}
+                      onClick={() => setSelectedSize(size)}
+                      className="px-4 py-2 text-xs uppercase tracking-widest transition-all"
+                      style={{
+                        fontFamily: "Outfit,sans-serif",
+                        border: selectedSize === size ? "1px solid #1A0E05" : "1px solid rgba(26,14,5,0.15)",
+                        background: selectedSize === size ? "#1A0E05" : "transparent",
+                        color: selectedSize === size ? "#FAF7F0" : "#1A0E05",
+                      }}
+                    >
+                      {size}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* Buttons */}
+            <div className="flex flex-col" style={{ gap: "1rem", marginTop: "auto" }}>
+              <button
+                onClick={buyNow}
+                className="w-full uppercase transition-colors"
+                style={{ padding: "1rem", background: "#1A0E05", color: "#FAF7F0", fontFamily: "Outfit,sans-serif", fontSize: "0.75rem", letterSpacing: "0.3em", border: "none", cursor: "pointer" }}
+              >
+                Buy Now
+              </button>
+              <button
+                onClick={buyNow}
+                className="w-full uppercase transition-colors"
+                style={{ padding: "1rem", background: "transparent", color: "#1A0E05", fontFamily: "Outfit,sans-serif", fontSize: "0.75rem", letterSpacing: "0.3em", border: "1px solid rgba(26,14,5,0.2)", cursor: "pointer" }}
+              >
+                View on Store
+              </button>
+            </div>
+
+            {/* Description */}
+            {product.buyNowSection?.description && (
+              <div style={{ marginTop: "3rem", paddingTop: "2rem", borderTop: "1px solid rgba(26,14,5,0.05)" }}>
+                <p style={{ fontFamily: "Outfit,sans-serif", fontSize: "0.875rem", lineHeight: 1.75, color: "rgba(26,14,5,0.7)" }}>
+                  {product.buyNowSection.description}
+                </p>
+              </div>
+            )}
+          </div>
+        </div>
       )}
     </dialog>
   );

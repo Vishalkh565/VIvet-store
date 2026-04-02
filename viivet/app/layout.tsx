@@ -1,6 +1,5 @@
 import type { Metadata } from "next";
 import { Cormorant_Garamond, Outfit } from "next/font/google";
-import Script from "next/script";
 import "./globals.css";
 
 const cormorant = Cormorant_Garamond({
@@ -40,10 +39,6 @@ export const metadata: Metadata = {
   },
 };
 
-const shopifyDomain = process.env.NEXT_PUBLIC_SHOPIFY_STORE_DOMAIN ?? "";
-const shopifyToken = process.env.NEXT_PUBLIC_SHOPIFY_PUBLIC_TOKEN ?? "";
-const shopifyConfigured = Boolean(shopifyDomain && shopifyToken);
-
 export default function RootLayout({
   children,
 }: {
@@ -52,24 +47,7 @@ export default function RootLayout({
   return (
     <html lang="en" className={`${cormorant.variable} ${outfit.variable}`}>
       <body className={outfit.className}>
-        {shopifyConfigured ? (
-          // shopify-store provides context for all shopify-* web components
-          <shopify-store
-            store-domain={shopifyDomain}
-            public-access-token={shopifyToken}
-          >
-            {children}
-          </shopify-store>
-        ) : (
-          children
-        )}
-        {shopifyConfigured && (
-          <Script
-            src="https://cdn.shopify.com/storefront/web-components.js"
-            type="module"
-            strategy="afterInteractive"
-          />
-        )}
+        {children}
       </body>
     </html>
   );

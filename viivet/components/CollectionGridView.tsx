@@ -1,146 +1,11 @@
 "use client";
 
-import { useEffect, useState } from "react";
 import Image from "next/image";
 import { motion } from "framer-motion";
 import { products } from "@/data/products";
 
 interface Props {
   onProductClick: (idx: number) => void;
-}
-
-// Read at module level — NEXT_PUBLIC_ vars are inlined by the bundler
-const shopifyConfigured = Boolean(
-  process.env.NEXT_PUBLIC_SHOPIFY_STORE_DOMAIN &&
-    process.env.NEXT_PUBLIC_SHOPIFY_PUBLIC_TOKEN
-);
-
-// Raw HTML for the Shopify template — injected via useEffect (client-only)
-// so the shopify-* elements are never serialised into the live SSR DOM.
-const GRID_ITEM_HTML = `
-  <div
-    class="group cursor-none relative flex flex-col items-center"
-    onclick="var m=document.getElementById('product-modal');var c=document.getElementById('product-modal-context');if(m&&c){c.update(event);m.showModal();}"
-  >
-    <div class="w-full aspect-[3/4] relative overflow-hidden rounded-md mb-6 shadow-sm" style="transition:box-shadow 0.5s">
-      <shopify-media
-        width="400"
-        height="533"
-        query="product.selectedOrFirstAvailableVariant.image"
-        layout="constrained"
-        class="w-full h-full object-cover"
-        style="transition:transform 0.7s ease-out"
-      ></shopify-media>
-    </div>
-    <div class="text-center w-full px-2">
-      <p class="text-xs uppercase mb-2" style="font-family:'Outfit',sans-serif;color:#C8A84B;letter-spacing:0.2em">
-        <shopify-data query="product.vendor"></shopify-data>
-      </p>
-      <h3 class="text-lg" style="font-family:'Cormorant Garamond',serif;color:#1A0E05;letter-spacing:0.02em">
-        <shopify-data query="product.title"></shopify-data>
-      </h3>
-      <p class="text-sm mt-1" style="font-family:'Outfit',sans-serif;color:rgba(26,14,5,0.5)">
-        <shopify-money query="product.selectedOrFirstAvailableVariant.price"></shopify-money>
-      </p>
-    </div>
-  </div>
-`;
-
-/** Loading skeleton shown during SSR and before client mount */
-function GridSkeleton() {
-  return (
-    <>
-      {Array.from({ length: 8 }).map((_, i) => (
-        <div key={i} className="flex flex-col items-center animate-pulse">
-          <div className="w-full aspect-[3/4] bg-[#1A0E05]/5 rounded-md mb-6" />
-          <div className="w-24 h-3 bg-[#1A0E05]/5 rounded-full mb-2" />
-          <div className="w-32 h-5 bg-[#1A0E05]/5 rounded-full" />
-        </div>
-      ))}
-    </>
-  );
-}
-
-/** Shopify-powered grid — only rendered after client mount */
-function ShopifyGrid() {
-  const [mounted, setMounted] = useState(false);
-
-  useEffect(() => {
-    setMounted(true);
-  }, []);
-
-  // During SSR and first hydration render, show skeleton only.
-  // This keeps ALL shopify-* elements out of the server HTML so the SDK
-  // never finds them in the live DOM before they're inside a template.
-  if (!mounted) return <GridSkeleton />;
-
-  return (
-    <shopify-list-context type="product" query="products" first="12">
-      {/* dangerouslySetInnerHTML on <template> works correctly in a pure
-          client-side render: React uses innerHTML which targets the template's
-          content DocumentFragment — keeping shopify-* out of the live DOM. */}
-      <template dangerouslySetInnerHTML={{ __html: GRID_ITEM_HTML }} />
-      <div shopify-loading-placeholder="true">
-        <div className="flex flex-col items-center animate-pulse">
-          <div className="w-full aspect-[3/4] bg-[#1A0E05]/5 rounded-md mb-6" />
-          <div className="w-24 h-3 bg-[#1A0E05]/5 rounded-full mb-2" />
-          <div className="w-32 h-5 bg-[#1A0E05]/5 rounded-full" />
-        </div>
-      </div>
-    </shopify-list-context>
-  );
-}
-
-/** Static fallback grid using local products data */
-function StaticGrid({ onProductClick }: Props) {
-  return (
-    <>
-      {products.map((product, idx) => (
-        <motion.button
-          key={product.id}
-          onClick={() => onProductClick(idx)}
-          className="group cursor-none relative flex flex-col items-center text-left"
-          initial={{ opacity: 0, y: 20 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true }}
-          transition={{ duration: 0.5, delay: idx * 0.05 }}
-        >
-          <div className="w-full aspect-[3/4] relative overflow-hidden rounded-md mb-6 shadow-sm group-hover:shadow-xl transition-shadow duration-500">
-            <Image
-              src={`${product.imagePath}.jpg`}
-              alt={product.name}
-              fill
-              className="object-cover transition-transform duration-700 ease-out group-hover:scale-105"
-              sizes="(max-width: 768px) 50vw, 25vw"
-            />
-          </div>
-          <div className="text-center w-full px-2">
-            <p
-              className="text-xs tracking-[0.2em] uppercase mb-2"
-              style={{ fontFamily: "'Outfit', sans-serif", color: "#C8A84B" }}
-            >
-              {product.category}
-            </p>
-            <h3
-              className="text-[#1A0E05] text-lg lg:text-xl transition-colors duration-300 group-hover:text-[#C8A84B]"
-              style={{
-                fontFamily: "'Cormorant Garamond', serif",
-                letterSpacing: "0.02em",
-              }}
-            >
-              {product.name}
-            </h3>
-            <p
-              className="text-[#1A0E05]/50 text-sm mt-1"
-              style={{ fontFamily: "'Outfit', sans-serif" }}
-            >
-              {product.price}
-            </p>
-          </div>
-        </motion.button>
-      ))}
-    </>
-  );
 }
 
 export default function CollectionGridView({ onProductClick }: Props) {
@@ -179,13 +44,52 @@ export default function CollectionGridView({ onProductClick }: Props) {
           </h2>
         </motion.div>
 
-        {/* Grid — Shopify live data when configured, static fallback otherwise */}
+        {/* Product Grid */}
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-6 gap-y-12">
-          {shopifyConfigured ? (
-            <ShopifyGrid />
-          ) : (
-            <StaticGrid onProductClick={onProductClick} />
-          )}
+          {products.map((product, idx) => (
+            <motion.button
+              key={product.id}
+              onClick={() => onProductClick(idx)}
+              className="group cursor-none relative flex flex-col items-center text-left"
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ duration: 0.5, delay: idx * 0.05 }}
+            >
+              <div className="w-full aspect-[3/4] relative overflow-hidden rounded-md mb-6 shadow-sm group-hover:shadow-xl transition-shadow duration-500">
+                <Image
+                  src={`${product.imagePath}.jpg`}
+                  alt={product.name}
+                  fill
+                  className="object-cover transition-transform duration-700 ease-out group-hover:scale-105"
+                  sizes="(max-width: 768px) 50vw, 25vw"
+                />
+              </div>
+              <div className="text-center w-full px-2">
+                <p
+                  className="text-xs tracking-[0.2em] uppercase mb-2"
+                  style={{ fontFamily: "'Outfit', sans-serif", color: "#C8A84B" }}
+                >
+                  {product.category}
+                </p>
+                <h3
+                  className="text-[#1A0E05] text-lg lg:text-xl transition-colors duration-300 group-hover:text-[#C8A84B]"
+                  style={{
+                    fontFamily: "'Cormorant Garamond', serif",
+                    letterSpacing: "0.02em",
+                  }}
+                >
+                  {product.name}
+                </h3>
+                <p
+                  className="text-[#1A0E05]/50 text-sm mt-1"
+                  style={{ fontFamily: "'Outfit', sans-serif" }}
+                >
+                  {product.price}
+                </p>
+              </div>
+            </motion.button>
+          ))}
         </div>
       </div>
     </section>

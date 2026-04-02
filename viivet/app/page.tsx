@@ -22,9 +22,7 @@ const shopifyConfigured = Boolean(
   process.env.NEXT_PUBLIC_SHOPIFY_STORE_DOMAIN &&
     process.env.NEXT_PUBLIC_SHOPIFY_PUBLIC_TOKEN
 );
-const ProductModal = shopifyConfigured
-  ? dynamic(() => import("@/components/ProductModal"), { ssr: false })
-  : null;
+const ProductModal = dynamic(() => import("@/components/ProductModal"), { ssr: false });
 
 export default function Home() {
   const [activeProduct, setActiveProduct] = useState(0);
@@ -182,7 +180,7 @@ export default function Home() {
       </main>
 
       <AboutModal />
-      {ProductModal && <ProductModal />}
+      <ProductModal />
 
       {/* Fixed bottom product navigation pill */}
       <AnimatePresence>
