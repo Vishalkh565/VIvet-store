@@ -17,6 +17,7 @@ import Footer from "@/components/Footer";
 import CartDrawer, { CartItem } from "@/components/CartDrawer";
 import dynamic from "next/dynamic";
 import AboutModal from "@/components/AboutModal";
+import InfoModal from "@/components/InfoModal";
 
 const shopifyConfigured = Boolean(
   process.env.NEXT_PUBLIC_SHOPIFY_STORE_DOMAIN &&
@@ -190,6 +191,7 @@ export default function Home() {
       </main>
 
       <AboutModal />
+      <InfoModal />
       <ProductModal />
 
       {/* Fixed bottom product navigation pill */}

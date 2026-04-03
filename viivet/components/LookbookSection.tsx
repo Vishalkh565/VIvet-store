@@ -43,7 +43,8 @@ export default function LookbookSection() {
         {lookbookImages.map((img, i) => (
           <motion.div
             key={img.src}
-            className="group relative overflow-hidden rounded-2xl aspect-[3/4]"
+            onClick={() => window.dispatchEvent(new CustomEvent("vivet:open-modal", { detail: { idx: i } }))}
+            className="group relative overflow-hidden rounded-2xl aspect-[3/4] cursor-pointer"
             initial={{ opacity: 0, y: 40 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}

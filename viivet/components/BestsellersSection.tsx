@@ -4,8 +4,12 @@ import Image from "next/image";
 import { motion } from "framer-motion";
 import { products } from "@/data/products";
 
-// Top 3 distinct items
-const bestsellers = [products[0], products[6], products[4]];
+// Top 3 distinct items mapped with their original global index
+const bestsellers = [
+  { p: products[0], idx: 0 },
+  { p: products[6], idx: 6 },
+  { p: products[4], idx: 4 },
+];
 
 export default function BestsellersSection() {
   return (
@@ -25,7 +29,7 @@ export default function BestsellersSection() {
       </motion.div>
 
       <div className="max-w-6xl mx-auto flex flex-col md:flex-row gap-12 lg:gap-8">
-        {bestsellers.map((product, idx) => (
+        {bestsellers.map(({ p: product, idx }) => (
           <motion.div
             key={product.id}
             className="flex-1 flex flex-col items-center group cursor-none"
@@ -34,7 +38,10 @@ export default function BestsellersSection() {
             viewport={{ once: true }}
             transition={{ delay: idx * 0.1 }}
           >
-            <div className="w-full aspect-[4/5] relative overflow-hidden mb-6 bg-[#C8A84B]/10 rounded-sm">
+            <div 
+              className="w-full aspect-[4/5] relative overflow-hidden mb-6 bg-[#C8A84B]/10 rounded-sm"
+              onClick={() => window.dispatchEvent(new CustomEvent("vivet:open-modal", { detail: { idx } }))}
+            >
               <Image
                 src={`${product.imagePath}.jpg`}
                 alt={product.name}
@@ -44,7 +51,11 @@ export default function BestsellersSection() {
               />
               <div className="absolute inset-0 border border-[#C8A84B]/0 group-hover:border-[#C8A84B]/40 transition-colors duration-500 rounded-sm" />
             </div>
-            <h3 className="text-xl mb-2 text-center" style={{ fontFamily: "Cormorant Garamond, serif", letterSpacing: "0.02em" }}>
+            <h3 
+              className="text-xl mb-2 text-center transition-colors duration-300 group-hover:text-[#C8A84B]" 
+              style={{ fontFamily: "Cormorant Garamond, serif", letterSpacing: "0.02em" }}
+              onClick={() => window.dispatchEvent(new CustomEvent("vivet:open-modal", { detail: { idx } }))}
+            >
               {product.name}
             </h3>
             <p className="text-xs tracking-wider opacity-50 uppercase mb-3 text-center" style={{ fontFamily: "Outfit, sans-serif" }}>

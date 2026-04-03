@@ -22,22 +22,30 @@ export default function Footer() {
       window.dispatchEvent(new CustomEvent("open-about"));
       return;
     }
-    setToastMsg(`${link} information available at checkout.`);
-    setTimeout(() => setToastMsg(""), 4000);
+    window.dispatchEvent(new CustomEvent("open-info", { detail: { tab: link } }));
   };
 
-  const handleSubscribe = () => {
+  const handleSubscribe = async () => {
     if (!email.includes("@")) {
       setSubscribeState("error");
       setTimeout(() => setSubscribeState("idle"), 3000);
       return;
     }
     setSubscribeState("loading");
-    setTimeout(() => {
+    try {
+      const res = await fetch("/api/subscribe", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email }),
+      });
+      if (!res.ok) throw new Error("Failed");
       setSubscribeState("success");
       setEmail("");
       setTimeout(() => setSubscribeState("idle"), 4000);
-    }, 1500);
+    } catch (e) {
+      setSubscribeState("error");
+      setTimeout(() => setSubscribeState("idle"), 3000);
+    }
   };
 
   return (

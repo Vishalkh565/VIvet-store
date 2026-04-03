@@ -6,6 +6,7 @@ import {
   motion,
   useScroll,
   useTransform,
+  useSpring,
 } from "framer-motion";
 import { Product } from "@/data/products";
 import { createShopifyCheckout } from "@/lib/shopify";
@@ -30,30 +31,36 @@ export default function ProductScrollExperience({
     offset: ["start start", "end end"],
   });
 
+  const smoothProgress = useSpring(scrollYProgress, {
+    stiffness: 100,
+    damping: 30,
+    restDelta: 0.001
+  });
+
   // Notify parent which product is active
   useEffect(() => {
-    const unsubscribe = scrollYProgress.onChange((v) => {
+    const unsubscribe = smoothProgress.onChange((v) => {
       if (v > 0.05 && v < 0.95) {
         onActiveChange(index);
       }
     });
     return unsubscribe;
-  }, [scrollYProgress, index, onActiveChange]);
+  }, [smoothProgress, index, onActiveChange]);
 
   // Image scale breathe
-  const imageScale = useTransform(scrollYProgress, [0, 1], [1.0, 1.06]);
+  const imageScale = useTransform(smoothProgress, [0, 1], [1.0, 1.06]);
 
   // Section opacities - tightly clamped so they do not overlap
-  const s1Opacity = useTransform(scrollYProgress, [0, 0.05, 0.20, 0.25], [0, 1, 1, 0]);
-  const s2Opacity = useTransform(scrollYProgress, [0.25, 0.30, 0.45, 0.50], [0, 1, 1, 0]);
-  const s3Opacity = useTransform(scrollYProgress, [0.50, 0.55, 0.70, 0.75], [0, 1, 1, 0]);
-  const s4Opacity = useTransform(scrollYProgress, [0.75, 0.80, 0.95, 1.0], [0, 1, 1, 0]);
+  const s1Opacity = useTransform(smoothProgress, [0, 0.05, 0.20, 0.25], [0, 1, 1, 0]);
+  const s2Opacity = useTransform(smoothProgress, [0.25, 0.30, 0.45, 0.50], [0, 1, 1, 0]);
+  const s3Opacity = useTransform(smoothProgress, [0.50, 0.55, 0.70, 0.75], [0, 1, 1, 0]);
+  const s4Opacity = useTransform(smoothProgress, [0.75, 0.80, 0.95, 1.0], [0, 1, 1, 0]);
 
   // Section Y movement - moves up while fading in, and moves further up while fading out
-  const s1Y = useTransform(scrollYProgress, [0, 0.05, 0.20, 0.25], [40, 0, 0, -40]);
-  const s2Y = useTransform(scrollYProgress, [0.25, 0.30, 0.45, 0.50], [40, 0, 0, -40]);
-  const s3Y = useTransform(scrollYProgress, [0.50, 0.55, 0.70, 0.75], [40, 0, 0, -40]);
-  const s4Y = useTransform(scrollYProgress, [0.75, 0.80, 0.95, 1.0], [40, 0, 0, -40]);
+  const s1Y = useTransform(smoothProgress, [0, 0.05, 0.20, 0.25], [40, 0, 0, -40]);
+  const s2Y = useTransform(smoothProgress, [0.25, 0.30, 0.45, 0.50], [40, 0, 0, -40]);
+  const s3Y = useTransform(smoothProgress, [0.50, 0.55, 0.70, 0.75], [40, 0, 0, -40]);
+  const s4Y = useTransform(smoothProgress, [0.75, 0.80, 0.95, 1.0], [40, 0, 0, -40]);
 
   const sectionData = [
     { key: "s1", opacity: s1Opacity, y: s1Y, data: product.section1 },

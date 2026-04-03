@@ -16,18 +16,38 @@ async function gql(query: string, variables?: unknown) {
   return res.json();
 }
 
-/** Returns the first variant GID for a product handle */
-async function getVariantId(handle: string): Promise<string | null> {
+/** Returns the specific variant GID matching the selected size, or falls back to first variant */
+async function getVariantId(handle: string, size?: string): Promise<string | null> {
   const data = await gql(`
-    query getVariant($handle: String!) {
+    query getVariants($handle: String!) {
       product(handle: $handle) {
-        variants(first: 1) {
-          nodes { id }
+        variants(first: 50) {
+          nodes {
+            id
+            title
+            selectedOptions {
+              name
+              value
+            }
+          }
         }
       }
     }
   `, { handle });
-  return data?.data?.product?.variants?.nodes?.[0]?.id ?? null;
+
+  const variants = data?.data?.product?.variants?.nodes || [];
+  if (variants.length === 0) return null;
+
+  if (size && size !== "One Size") {
+    const match = variants.find((v: any) => 
+      v.title === size || 
+      v.selectedOptions.some((opt: any) => opt.name.toLowerCase() === "size" && opt.value.toLowerCase() === size.toLowerCase()) ||
+      v.selectedOptions.some((opt: any) => opt.value.toLowerCase() === size.toLowerCase())
+    );
+    if (match) return match.id;
+  }
+
+  return variants[0]?.id ?? null;
 }
 
 /**
@@ -35,11 +55,12 @@ async function getVariantId(handle: string): Promise<string | null> {
  * Returns null if the cart cannot be created (e.g. product not found on Shopify).
  */
 export async function createShopifyCheckout(
-  items: CartItem[]
+  items: CartItem[],
+  discountCode?: string
 ): Promise<string | null> {
-  // Fetch Shopify variant IDs in parallel using product.shopifyHandle (= actual Shopify handle)
+  // Fetch Shopify variant IDs in parallel using product.shopifyHandle (= actual Shopify handle) and the selected size
   const variantIds = await Promise.all(
-    items.map((item) => getVariantId(item.product.shopifyHandle))
+    items.map((item) => getVariantId(item.product.shopifyHandle, item.size))
   );
 
   const lines = items
@@ -53,6 +74,11 @@ export async function createShopifyCheckout(
   // If no lines could be resolved, fall back to store homepage
   if (lines.length === 0) return null;
 
+  const input: any = { lines };
+  if (discountCode && discountCode.trim() !== "") {
+    input.discountCodes = [discountCode.trim()];
+  }
+
   const data = await gql(
     `
     mutation cartCreate($input: CartInput!) {
@@ -62,7 +88,7 @@ export async function createShopifyCheckout(
       }
     }
   `,
-    { input: { lines } }
+    { input }
   );
 
   return data?.data?.cartCreate?.cart?.checkoutUrl ?? null;

@@ -15,6 +15,7 @@ export default function ProductModal() {
   const [selectedSize, setSelectedSize] = useState<string>("");
   const [checkingOut, setCheckingOut] = useState(false);
   const [added, setAdded] = useState(false);
+  const [expandedAccordion, setExpandedAccordion] = useState<string | null>(null);
 
   // Listen for open-modal events (dispatched from product cards)
   useEffect(() => {
@@ -177,14 +178,52 @@ export default function ProductModal() {
               </button>
             </div>
 
-            {/* Description */}
-            {product.description && (
-              <div style={{ marginTop: "3rem", paddingTop: "2rem", borderTop: "1px solid rgba(26,14,5,0.05)" }}>
-                <p style={{ fontFamily: "Outfit,sans-serif", fontSize: "0.875rem", lineHeight: 1.75, color: "rgba(26,14,5,0.7)" }}>
+            {/* Description & Accordions */}
+            <div style={{ marginTop: "3rem", paddingTop: "2rem", borderTop: "1px solid rgba(26,14,5,0.05)" }}>
+              {product.description && (
+                <p style={{ fontFamily: "Outfit,sans-serif", fontSize: "0.875rem", lineHeight: 1.75, color: "rgba(26,14,5,0.7)", marginBottom: "2rem" }}>
                   {product.description}
                 </p>
+              )}
+              
+              <div className="space-y-2">
+                {[
+                  {
+                    id: "size",
+                    label: "Size & Fit Guide",
+                    content: "Our garments are designed for a relaxed, resort fit. Take your normal size for the intended drape, or size down for a more tailored look. Model is 6'2\" wearing size L."
+                  },
+                  {
+                    id: "shipping",
+                    label: "Shipping & Returns",
+                    content: "Complimentary shipping on all domestic orders. 14-day return policy for unwashed, unworn items with tags attached."
+                  }
+                ].map((acc) => (
+                  <div key={acc.id} className="border-b border-[#1A0E05]/10">
+                    <button
+                      onClick={() => setExpandedAccordion(expandedAccordion === acc.id ? null : acc.id)}
+                      className="w-full py-4 flex justify-between items-center text-left text-[#1A0E05] hover:text-[#C8A84B] transition-colors"
+                      style={{ fontFamily: "Outfit,sans-serif", fontSize: "0.875rem", letterSpacing: "0.05em", textTransform: "uppercase" }}
+                    >
+                      <span>{acc.label}</span>
+                      <svg
+                        width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5"
+                        className={`transform transition-transform duration-300 ${expandedAccordion === acc.id ? "rotate-180" : ""}`}
+                      >
+                        <polyline points="6 9 12 15 18 9"></polyline>
+                      </svg>
+                    </button>
+                    <div
+                      className={`overflow-hidden transition-all duration-300 ${expandedAccordion === acc.id ? "max-h-40 pb-4" : "max-h-0"}`}
+                    >
+                      <p style={{ fontFamily: "Outfit,sans-serif", fontSize: "0.875rem", color: "rgba(26,14,5,0.6)", lineHeight: 1.6 }}>
+                        {acc.content}
+                      </p>
+                    </div>
+                  </div>
+                ))}
               </div>
-            )}
+            </div>
           </div>
         </div>
       )}

@@ -4,6 +4,7 @@ import { useState } from "react";
 import Image from "next/image";
 import { motion } from "framer-motion";
 import { Product } from "@/data/products";
+import { createShopifyCheckout } from "@/lib/shopify";
 
 interface Props {
   product: Product;
@@ -12,6 +13,24 @@ interface Props {
 
 export default function BuyNowSection({ product, onAddToCart }: Props) {
   const [selectedSize, setSelectedSize] = useState(product.sizes[0]);
+  const [isBuying, setIsBuying] = useState(false);
+
+  const handleBuyNow = async () => {
+    if (isBuying) return;
+    setIsBuying(true);
+    try {
+      const url = await createShopifyCheckout([{ product, size: selectedSize, qty: 1 }]);
+      if (url) {
+        window.location.href = url;
+      } else {
+        window.open(`https://viivet.myshopify.com/products/${product.shopifyHandle}`, "_blank");
+      }
+    } catch {
+      window.open(`https://viivet.myshopify.com/products/${product.shopifyHandle}`, "_blank");
+    } finally {
+      setIsBuying(false);
+    }
+  };
 
   return (
     <section
@@ -153,16 +172,29 @@ export default function BuyNowSection({ product, onAddToCart }: Props) {
             </motion.button>
             <motion.button
               id="buy-now-buy"
+              onClick={handleBuyNow}
+              disabled={isBuying}
               whileTap={{ scale: 0.97 }}
               whileHover={{ filter: "brightness(1.05)" }}
-              className="flex-1 py-4 rounded-xl font-medium text-sm tracking-[0.2em] uppercase border cursor-none"
+              className="flex-1 py-4 rounded-xl font-medium text-sm tracking-[0.2em] uppercase border cursor-none flex items-center justify-center gap-2"
               style={{
                 fontFamily: "Outfit, sans-serif",
                 borderColor: product.themeColor,
                 color: product.themeColor,
+                opacity: isBuying ? 0.6 : 1,
               }}
             >
-              Buy Now
+              {isBuying ? (
+                <>
+                  <svg className="animate-spin" width="14" height="14" viewBox="0 0 24 24" fill="none">
+                    <circle cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="3" strokeOpacity="0.3"/>
+                    <path d="M12 2a10 10 0 0110 10" stroke="currentColor" strokeWidth="3" strokeLinecap="round"/>
+                  </svg>
+                  Processing...
+                </>
+              ) : (
+                "Buy Now"
+              )}
             </motion.button>
           </div>
 

@@ -21,6 +21,7 @@ interface Props {
 
 export default function CartDrawer({ isOpen, onClose, items, onRemove }: Props) {
   const [checkingOut, setCheckingOut] = useState(false);
+  const [discountCode, setDiscountCode] = useState("");
 
   const subtotal = items.reduce((sum, item) => {
     const price = parseInt(item.product.price.replace(/[^\d]/g, ""), 10);
@@ -31,7 +32,7 @@ export default function CartDrawer({ isOpen, onClose, items, onRemove }: Props) 
     if (items.length === 0 || checkingOut) return;
     setCheckingOut(true);
     try {
-      const url = await createShopifyCheckout(items);
+      const url = await createShopifyCheckout(items, discountCode);
       if (url) {
         window.location.href = url;
       } else {
@@ -166,6 +167,18 @@ export default function CartDrawer({ isOpen, onClose, items, onRemove }: Props) 
 
             {/* Footer */}
             <div className="px-8 pb-8 pt-6 border-t border-[#C8A84B]/20">
+              {/* Discount Code */}
+              <div className="mb-4">
+                <input
+                  type="text"
+                  placeholder="Discount code"
+                  value={discountCode}
+                  onChange={(e) => setDiscountCode(e.target.value.toUpperCase())}
+                  className="w-full px-4 py-3 border border-[#1A0E05]/10 rounded-xl text-sm bg-transparent outline-none focus:border-[#C8A84B]/50 transition-colors tracking-widest placeholder:normal-case placeholder:tracking-normal placeholder:text-[#1A0E05]/30 cursor-none"
+                  style={{ fontFamily: "Outfit, sans-serif", color: "#1A0E05" }}
+                />
+              </div>
+
               {/* Subtotal */}
               <div className="flex items-center justify-between mb-6">
                 <span className="text-sm text-[#1A0E05]/60 tracking-wider uppercase" style={{ fontFamily: "Outfit, sans-serif" }}>
