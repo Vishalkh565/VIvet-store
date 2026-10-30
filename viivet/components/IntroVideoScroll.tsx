@@ -11,6 +11,7 @@ export default function IntroVideoScroll() {
   const imagesRef = useRef<HTMLImageElement[]>([]);
   const [loaded, setLoaded] = useState(false);
   const [frameIndex, setFrameIndex] = useState(0);
+  const [resizeKey, setResizeKey] = useState(0);
 
   const { scrollYProgress } = useScroll({
     target: containerRef,
@@ -30,7 +31,7 @@ export default function IntroVideoScroll() {
     for (let i = 1; i <= TOTAL_FRAMES; i++) {
       const img = new Image();
       const num = String(i).padStart(3, "0");
-      img.src = `/frames/ezgif-frame-${num}.jpg`;
+      img.src = `/frames-4k/ezgif-frame-${num}.jpg`;
 
       img.onload = () => {
         loadedCount++;
@@ -58,7 +59,7 @@ export default function IntroVideoScroll() {
     const img = imagesRef.current[frameIndex];
     if (!img || !img.complete || img.naturalWidth === 0) return;
 
-    const dpr = typeof window !== "undefined" ? (window.devicePixelRatio || 1) : 1;
+    const dpr = typeof window !== "undefined" ? Math.max(window.devicePixelRatio || 1, 2) : 2;
 
     const cssW = canvas.offsetWidth;
     const cssH = canvas.offsetHeight;
@@ -85,7 +86,7 @@ export default function IntroVideoScroll() {
     const y = 0;
 
     ctx.drawImage(img, x, y, drawW, drawH);
-  }, [frameIndex, loaded, firstFrameReady]);
+  }, [frameIndex, loaded, firstFrameReady, resizeKey]);
 
   // Sync scroll position to frame index + re-render on resize
   useEffect(() => {
@@ -96,7 +97,7 @@ export default function IntroVideoScroll() {
 
     const unsubscribe = scrollYProgress.onChange(updateFrame);
 
-    const handleResize = () => setFrameIndex((prev) => prev);
+    const handleResize = () => setResizeKey((k) => k + 1);
     window.addEventListener("resize", handleResize, { passive: true });
 
     return () => {
