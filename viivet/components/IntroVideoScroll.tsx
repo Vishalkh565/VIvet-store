@@ -77,6 +77,9 @@ export default function IntroVideoScroll() {
     ctx.imageSmoothingEnabled = true;
     ctx.imageSmoothingQuality = "high";
 
+    // HDR-grade color enhancement applied at draw time (GPU-accelerated)
+    ctx.filter = "contrast(1.18) saturate(1.35) brightness(1.06)";
+
     // Cover-fit with 25% zoom, aligned to top to aggressively crop the baked-in button on all devices (tablets/iPads have different aspect ratios)
     const EXTRA_ZOOM = 1.25;
     const scale = Math.max(cssW / img.naturalWidth, cssH / img.naturalHeight) * EXTRA_ZOOM;
@@ -86,6 +89,9 @@ export default function IntroVideoScroll() {
     const y = 0;
 
     ctx.drawImage(img, x, y, drawW, drawH);
+
+    // Reset filter so any future compositing is unaffected
+    ctx.filter = "none";
   }, [frameIndex, loaded, firstFrameReady, resizeKey]);
 
   // Sync scroll position to frame index + re-render on resize
@@ -114,7 +120,11 @@ export default function IntroVideoScroll() {
         <canvas
           ref={canvasRef}
           className="absolute inset-0 w-full h-full object-cover"
-          style={{ width: "100%", height: "100%" }}
+          style={{
+            width: "100%",
+            height: "100%",
+            filter: "contrast(1.08) saturate(1.2) brightness(1.02)",
+          }}
         />
 
         {/* Loading overlay — only shows until frame 1 is ready */}
