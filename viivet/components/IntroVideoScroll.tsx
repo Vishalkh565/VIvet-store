@@ -31,7 +31,7 @@ export default function IntroVideoScroll() {
     for (let i = 1; i <= TOTAL_FRAMES; i++) {
       const img = new Image();
       const num = String(i).padStart(3, "0");
-      img.src = `/frames-4k/ezgif-frame-${num}.jpg`;
+      img.src = `/frames/ezgif-frame-${num}.jpg`;
 
       img.onload = () => {
         loadedCount++;
